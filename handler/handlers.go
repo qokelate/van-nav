@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -154,6 +155,24 @@ func GetAllHandler(c *gin.Context) {
 		// 过滤掉隐藏工具
 		tools = utils.FilterHideTools(tools, catelogs)
 	}
+
+	//by sma11case,处理logo的url
+	{
+		r, _ := regexp.Compile(`^[a-fA-F0-9]{32}$`)
+		t2 := make([]types.Tool, 0, len(tools))
+		for _, v := range tools {
+
+			if r.MatchString(v.Logo) {
+				v.Logo = `/api/img?url=` + v.Logo
+				t2 = append(t2, v)
+				continue
+			}
+
+			t2 = append(t2, v)
+		}
+		tools = t2
+	}
+
 	if !utils.IsLogin(c) {
 		// 过滤掉隐藏分类
 		catelogs = utils.FilterHideCates(catelogs)
