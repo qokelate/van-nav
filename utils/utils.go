@@ -39,6 +39,12 @@ func In(target string, str_array []string) bool {
 }
 
 func GetImgBase64FromUrl(url string) string {
+
+	// by sma11case
+	if strings.HasPrefix(url, `base64:`) {
+		return url[7:]
+	}
+
 	imgUrl := url
 	//获取远端图片
 	req, err := http.NewRequest("GET", imgUrl, nil)
