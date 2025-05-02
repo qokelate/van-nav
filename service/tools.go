@@ -49,7 +49,7 @@ func UpdateTool(data types.UpdateToolDto) {
 		`
 	stmt, err := database.DB.Prepare(sql_update_tool)
 	utils.CheckErr(err)
-	res, err := stmt.Exec(data.Name, data.Url, data.Logo, data.Catelog, data.Desc, data.Sort, data.Hide, data.Id)
+	res, err := stmt.Exec(data.Name, data.Url, utils.GetRealImgURL(data.Logo), data.Catelog, data.Desc, data.Sort, data.Hide, data.Id)
 	utils.CheckErr(err)
 	_, err = res.RowsAffected()
 	utils.CheckErr(err)
@@ -83,7 +83,7 @@ func AddTool(data types.AddToolDto) (int64, error) {
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(data.Name, data.Url, data.Logo, data.Catelog, data.Desc, data.Sort, data.Hide)
+	res, err := stmt.Exec(data.Name, data.Url, utils.GetRealImgURL(data.Logo), data.Catelog, data.Desc, data.Sort, data.Hide)
 	if err != nil {
 		return 0, err
 	}

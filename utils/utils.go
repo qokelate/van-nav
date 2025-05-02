@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"crypto/md5"
 	"crypto/tls"
 	"database/sql"
 	"encoding/base64"
+	"encoding/hex"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -36,6 +38,19 @@ func In(target string, str_array []string) bool {
 		}
 	}
 	return false
+}
+
+// by sma11case
+func GetRealImgURL(url1 string) string {
+	if strings.HasPrefix(url1, `base64:`) {
+		a, err := base64.StdEncoding.DecodeString(url1[7:])
+		if err != nil {
+			return ``
+		}
+		b := md5.Sum(a)
+		return hex.EncodeToString(b[:])
+	}
+	return url1
 }
 
 func GetImgBase64FromUrl(url string) string {
