@@ -11,7 +11,7 @@ RUN apk --no-cache --no-progress add  git
 WORKDIR /app
 COPY . .
 COPY --from=frontendbuilder /app/public /app/public
-RUN cd /app && ls -la && go mod tidy && go build .
+RUN cd /app && ./build.sh
 
 
 FROM alpine:latest
