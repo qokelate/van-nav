@@ -77,11 +77,9 @@ func GetImgFromDB(url1 string) types.Img {
 }
 
 func UpdateImg(url1 string) {
-
 	// 除了更新工具本身之外，也要更新 img 表
 	// 先看有没有，有的话就不管了，没有的话就创建
-	urlEncoded := url.QueryEscape(utils.GetRealImgURL(url1))
-
+	urlEncoded := url.QueryEscape(url1)
 	base64ImgValue := utils.GetImgBase64FromUrl(url1)
 	if base64ImgValue == "" {
 		return

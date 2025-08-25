@@ -62,16 +62,16 @@ export const FetchList = async () => {
     }
 
     const jumpTarget = getJumpTarget();
-
-    data.tools.push({
-        id: 999099999978,
-        catelogs: "偏好设置",
-        name: jumpTarget === "blank" ? "新建窗口" : "原地跳转",
-        desc: `点击切换跳转方式`,
-        url: "toggleJumpTarget",
-        logo: jumpTarget === "blank" ? blankJumpIcon : selfJumpIcon
-    })
-
+    if (!data.setting?.hideToggleJumpTarget) {
+        data.tools.push({
+            id: 999099999978,
+            catelogs: "偏好设置",
+            name: jumpTarget === "blank" ? "新建窗口" : "原地跳转",
+            desc: `点击切换跳转方式`,
+            url: "toggleJumpTarget",
+            logo: jumpTarget === "blank" ? blankJumpIcon : selfJumpIcon
+        })
+    }
     data.catelogs = catelogs;
     return data;
 };
@@ -131,6 +131,11 @@ export const fetchUpdateSetting = async (payload: any) => {
     return data?.data || {};
 };
 
+export const fetchUpdateSiteConfig = async (payload: any) => {
+    const { data } = await axios.put(`/api/admin/siteConfig`, payload);
+    return data?.data || {};
+};
+
 export const fetchUpdateUser = async (payload: any) => {
     const { data } = await axios.put(`/api/admin/user`, payload);
     return data?.data || {};
@@ -146,5 +151,43 @@ export const fetchDeleteApiToken = async (id: number) => {
 };
 export const fetchUpdateToolsSort = async (updates: { id: number; sort: number }[]) => {
     const { data } = await axios.put(`/api/admin/tools/sort`, updates);
+    return data?.data || {};
+};
+
+// ==================== 搜索引擎管理接口 ====================
+
+// 获取所有搜索引擎（管理员用）
+export const fetchGetAllSearchEngines = async () => {
+    const { data } = await axios.get(`/api/admin/searchEngine`);
+    return data?.data || [];
+};
+
+// 获取启用的搜索引擎（前端搜索用）
+export const fetchGetEnabledSearchEngines = async () => {
+    const { data } = await axios.get(`/api/searchEngines`);
+    return data?.data || [];
+};
+
+// 添加搜索引擎
+export const fetchAddSearchEngine = async (payload: any) => {
+    const { data } = await axios.post(`/api/admin/searchEngine`, payload);
+    return data?.data || {};
+};
+
+// 更新搜索引擎
+export const fetchUpdateSearchEngine = async (payload: any) => {
+    const { data } = await axios.put(`/api/admin/searchEngine/${payload.id}`, payload);
+    return data?.data || {};
+};
+
+// 删除搜索引擎
+export const fetchDeleteSearchEngine = async (id: number) => {
+    const { data } = await axios.delete(`/api/admin/searchEngine/${id}`);
+    return data?.data || {};
+};
+
+// 更新搜索引擎排序
+export const fetchUpdateSearchEnginesSort = async (updates: { id: number; sort: number }[]) => {
+    const { data } = await axios.put(`/api/admin/searchEngines/sort`, updates);
     return data?.data || {};
 };

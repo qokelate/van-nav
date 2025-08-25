@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/mereith/nav/database"
 	"github.com/mereith/nav/handler"
@@ -57,13 +58,15 @@ func BinaryFileSystem(data embed.FS, root string) *binaryFileSystem {
 }
 
 var port = flag.String("port", "6412", "指定监听端口")
+var addr = flag.String("addr", "0.0.0.0", "指定监听地址")
 
 func main() {
 	flag.Parse()
 	database.InitDB()
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
-	router.Use(gzip.Gzip(gzip.DefaultCompression))
+	router.Use(gzip.Gzip(gzip.DefaultCompression, gzip.WithExcludedExtensions([]string{".png", ".jpg", ".jpeg", ".ico", ".svg"})))
+	//router.Use(gzip.Gzip(gzip.DefaultCompression))
 	// 嵌入文件夹
 	router.GET("/manifest.json", handler.ManifastHanlder)
 	router.Use(Serve("/", BinaryFileSystem(fs, "public")))
@@ -76,6 +79,10 @@ func main() {
 		api.POST("/login", handler.LoginHandler)
 		api.GET("/logout", handler.LogoutHandler)
 		api.GET("/img", handler.GetLogoImgHandler)
+		
+		// 获取启用的搜索引擎（公开接口）
+		api.GET("/searchEngines", handler.GetEnabledSearchEnginesHandler)
+		
 		// 管理员用的
 		admin := api.Group("/admin")
 		admin.Use(middleware.JWTMiddleware())
@@ -92,6 +99,8 @@ func main() {
 
 			admin.PUT("/setting", handler.UpdateSettingHandler)
 
+			admin.PUT("/siteConfig", handler.UpdateSiteConfigHandler)
+
 			admin.POST("/tool", handler.AddToolHandler)
 			admin.DELETE("/tool/:id", handler.DeleteToolHandler)
 			admin.PUT("/tool/:id", handler.UpdateToolHandler)
@@ -100,12 +109,27 @@ func main() {
 			admin.POST("/catelog", handler.AddCatelogHandler)
 			admin.DELETE("/catelog/:id", handler.DeleteCatelogHandler)
 			admin.PUT("/catelog/:id", handler.UpdateCatelogHandler)
+			
+			// 搜索引擎管理路由
+			admin.GET("/searchEngine", handler.GetAllSearchEnginesHandler)
+			admin.POST("/searchEngine", handler.AddSearchEngineHandler)
+			admin.PUT("/searchEngine/:id", handler.UpdateSearchEngineHandler)
+			admin.DELETE("/searchEngine/:id", handler.DeleteSearchEngineHandler)
+			admin.PUT("/searchEngines/sort", handler.UpdateSearchEngineSortHandler)
 		}
 	}
 	logger.LogInfo("应用启动成功，网址: http://localhost:%s", *port)
-	listen := fmt.Sprintf(":%s", *port)
-	err := router.Run(listen)
-	if err != nil {
+	listen := fmt.Sprintf("%s:%s", *addr, *port)
+	srv := &http.Server{
+		Addr:         listen,
+		Handler:      router,
+		ReadTimeout:  3 * time.Second, // 可根据实际需要调整
+		WriteTimeout: 3 * time.Second, // 可根据实际需要调整
+		IdleTimeout:  3 * time.Second, // 建议设置为 10s 或更短
+	}
+
+	err := srv.ListenAndServe()
+	if err != nil && err != http.ErrServerClosed {
 		logger.LogError("应用启动失败，错误: %s", err)
 	}
 }

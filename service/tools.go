@@ -1,6 +1,7 @@
 package service
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/mereith/nav/database"
@@ -12,7 +13,8 @@ import (
 func ImportTools(data []types.Tool) {
 	var catelogs []string
 	for _, v := range data {
-		if !utils.In(v.Catelog, catelogs) {
+		// 过滤掉空分类，只收集有效的分类名称
+		if v.Catelog != "" && strings.TrimSpace(v.Catelog) != "" && !utils.In(v.Catelog, catelogs) {
 			catelogs = append(catelogs, v.Catelog)
 		}
 		sql_add_tool := `
@@ -49,7 +51,7 @@ func UpdateTool(data types.UpdateToolDto) {
 		`
 	stmt, err := database.DB.Prepare(sql_update_tool)
 	utils.CheckErr(err)
-	res, err := stmt.Exec(data.Name, data.Url, utils.GetRealImgURL(data.Logo), data.Catelog, data.Desc, data.Sort, data.Hide, data.Id)
+	res, err := stmt.Exec(data.Name, data.Url, data.Logo, data.Catelog, data.Desc, data.Sort, data.Hide, data.Id)
 	utils.CheckErr(err)
 	_, err = res.RowsAffected()
 	utils.CheckErr(err)
@@ -83,7 +85,7 @@ func AddTool(data types.AddToolDto) (int64, error) {
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(data.Name, data.Url, utils.GetRealImgURL(data.Logo), data.Catelog, data.Desc, data.Sort, data.Hide)
+	res, err := stmt.Exec(data.Name, data.Url, data.Logo, data.Catelog, data.Desc, data.Sort, data.Hide)
 	if err != nil {
 		return 0, err
 	}
